@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
+const path = require("path");
 
 // Route Imports
 const teams = require("./routes/api/teams");
@@ -13,7 +14,7 @@ const gamesettings = require("./routes/api/gamesettings");
 
 // Initialisation
 const app = express();
-const PORT = 8008;
+const PORT = process.env.PORT || 8008;
 
 // Body Parser MiddleWare
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -41,5 +42,15 @@ app.use("/api/challenges", challenges);
 app.use("/api/submissions", submissions);
 app.use("/api/notifications", notifications);
 app.use("/api/gamesettings", gamesettings);
+
+// Serve static assets.
+if (process.env.NODE_ENV === "production") {
+  // set a static folder.
+  app.use(express.static("client/build"));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
+}
 
 app.listen(PORT, () => console.log(`Listening to port ${PORT}`));

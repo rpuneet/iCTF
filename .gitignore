@@ -1,4 +1,5 @@
-./node_modules
-./package-lock.json
-./yarn.lock
-./yarn-error.log
+/node_modules
+package-lock.json
+yarn.lock
+yarn-error.log
+/config/keys_dev.js
