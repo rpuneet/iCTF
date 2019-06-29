@@ -40,8 +40,8 @@ router.get(
         const current = new Date(Date.now());
 
         if (start > current || end < current) {
-          errors.flag = "Contest is not running";
-          return res.status(404).json(errors);
+          errors.challenge = "Contest is not running";
+          return res.status(400).json(errors);
         }
         Challenge.find({}, { flag: 0 })
           .populate("requirements", ["name"])
