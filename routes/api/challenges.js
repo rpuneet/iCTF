@@ -10,6 +10,7 @@ const Validator = require("validator");
 
 // Import DB Models
 const Challenge = require("../../models/Challenge");
+const GameSetting = require("../../models/GameSetting");
 
 // Routes
 
@@ -28,15 +29,31 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     const errors = {};
-    Challenge.find({}, { flag: 0 })
-      .populate("requirements", ["name"])
-      .populate("solvedBy", ["handle", "name"])
-      .then(challenges => {
-        if (challenges.length === 0) {
-          errors.nochallenge = "No challenges found";
+    GameSetting.findOne()
+      .then(settings => {
+        if (!settings) {
+          errors.nosettings = "No game settings found";
           return res.status(404).json(errors);
         }
-        res.json(challenges);
+        const start = new Date(settings.startTime);
+        const end = new Date(settings.endTime);
+        const current = new Date(Date.now());
+
+        if (start > current || end < current) {
+          errors.flag = "Contest is not running";
+          return res.status(404).json(errors);
+        }
+        Challenge.find({}, { flag: 0 })
+          .populate("requirements", ["name"])
+          .populate("solvedBy", ["handle", "name"])
+          .then(challenges => {
+            if (challenges.length === 0) {
+              errors.nochallenge = "No challenges found";
+              return res.status(404).json(errors);
+            }
+            res.json(challenges);
+          })
+          .catch(err => res.status(404).json(err));
       })
       .catch(err => res.status(404).json(err));
   }
