@@ -68,6 +68,9 @@ router.get(
  */
 router.post("/register", (req, res) => {
   const { errors, isValid } = validateRegisterInput(req.body);
+  req.body.email = req.body.email.trim();
+  req.body.name = req.body.name.trim();
+  req.body.handle = req.body.handle.trim();
 
   if (!isValid) {
     return res.status(400).json(errors);
@@ -130,6 +133,7 @@ router.post("/login", (req, res) => {
   if (!isValid) {
     return res.status(400).json(errors);
   }
+  req.body.handle = req.body.handle.trim();
 
   const handle = req.body.handle;
   const password = req.body.password;
