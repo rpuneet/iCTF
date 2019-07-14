@@ -29,51 +29,53 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     const errors = {};
-    let shouldReturnFlag = false;
 
     if (req.user.handle === "admin") {
-      shouldReturnFlag = true;
-    }
-    GameSetting.findOne()
-      .then(settings => {
-        if (!settings) {
-          errors.nosettings = "No game settings found";
-          return res.status(404).json(errors);
-        }
-        const start = new Date(settings.startTime);
-        const end = new Date(settings.endTime);
-        const current = new Date(Date.now());
-
-        if (start > current || end < current) {
-          errors.challenge = "Contest is not running";
-          return res.status(400).json(errors);
-        }
-        Challenge.find(
-          {},
-          {
-            flag: shouldReturnFlag,
-            name: 1,
-            _id: 1,
-            description: 1,
-            category: 1,
-            state: 1,
-            value: 1,
-            requirements: 1,
-            solvedBy: 1
+      Challenge.find({})
+        .populate("requirements", ["name"])
+        .populate("solvedBy", ["handle", "name"])
+        .then(challenges => {
+          if (challenges.length === 0) {
+            errors.nochallenge = "No challenges found";
+            return res.status(404).json(errors);
           }
-        )
-          .populate("requirements", ["name"])
-          .populate("solvedBy", ["handle", "name"])
-          .then(challenges => {
-            if (challenges.length === 0) {
-              errors.nochallenge = "No challenges found";
-              return res.status(404).json(errors);
+          res.json(challenges);
+        })
+        .catch(err => res.status(404).json(err));
+    } else {
+      GameSetting.findOne()
+        .then(settings => {
+          if (!settings) {
+            errors.nosettings = "No game settings found";
+            return res.status(404).json(errors);
+          }
+          const start = new Date(settings.startTime);
+          const end = new Date(settings.endTime);
+          const current = new Date(Date.now());
+
+          if (start > current || end < current) {
+            errors.challenge = "Contest is not running";
+            return res.status(400).json(errors);
+          }
+          Challenge.find(
+            {},
+            {
+              flag: 0
             }
-            res.json(challenges);
-          })
-          .catch(err => res.status(404).json(err));
-      })
-      .catch(err => res.status(404).json(err));
+          )
+            .populate("requirements", ["name"])
+            .populate("solvedBy", ["handle", "name"])
+            .then(challenges => {
+              if (challenges.length === 0) {
+                errors.nochallenge = "No challenges found";
+                return res.status(404).json(errors);
+              }
+              res.json(challenges);
+            })
+            .catch(err => res.status(404).json(err));
+        })
+        .catch(err => res.status(404).json(err));
+    }
   }
 );
 
