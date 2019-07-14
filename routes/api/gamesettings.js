@@ -61,7 +61,7 @@ router.put(
       gameSetting
         .save()
         .then(gameSetting => res.json(gameSetting))
-        .catch(err => err.status(404).json(err));
+        .catch(err => res.status(404).json({ err }));
     });
   }
 );

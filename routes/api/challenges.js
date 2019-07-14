@@ -29,6 +29,11 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     const errors = {};
+    let shouldReturnFlag = false;
+
+    if (req.user.handle === "admin") {
+      shouldReturnFlag = true;
+    }
     GameSetting.findOne()
       .then(settings => {
         if (!settings) {
@@ -43,7 +48,20 @@ router.get(
           errors.challenge = "Contest is not running";
           return res.status(400).json(errors);
         }
-        Challenge.find({}, { flag: 0 })
+        Challenge.find(
+          {},
+          {
+            flag: shouldReturnFlag,
+            name: 1,
+            _id: 1,
+            description: 1,
+            category: 1,
+            state: 1,
+            value: 1,
+            requirements: 1,
+            solvedBy: 1
+          }
+        )
           .populate("requirements", ["name"])
           .populate("solvedBy", ["handle", "name"])
           .then(challenges => {
@@ -68,7 +86,6 @@ router.post(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     const { errors, isValid } = validateChallengeInput(req.body);
-
     // Only admin can access this API
     if (req.user.handle.localeCompare("admin")) {
       errors.auth = "You are not authorized to access this API";
