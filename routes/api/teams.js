@@ -137,6 +137,7 @@ router.post("/login", (req, res) => {
 
   const handle = req.body.handle;
   const password = req.body.password;
+
   // Find team by handle.
   Team.findOne({ handle })
     .then(team => {
